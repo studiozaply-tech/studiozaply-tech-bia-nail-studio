@@ -403,3 +403,29 @@ export async function updateClientAction(input: z.input<typeof clientSchema>): P
   refreshAdmin();
   return { ok: true };
 }
+
+/* --------------------------- Acessos ao painel --------------------------- */
+
+const inviteEmailSchema = z.email("Digite um e-mail válido.").transform((e) => e.trim().toLowerCase());
+
+export async function addAdminInviteAction(email: string): Promise<ActionResult> {
+  const admin = await getAdminOrNull();
+  if (!admin) return NOT_ALLOWED;
+  const parsed = inviteEmailSchema.safeParse(email.trim());
+  if (!parsed.success) return { ok: false, error: "Digite um e-mail válido.", fieldErrors: { email: "Digite um e-mail válido." } };
+
+  const { error } = await admin.supabase.from("admin_invites").insert({ email: parsed.data });
+  if (error?.code === "23505") return { ok: false, error: "Esse e-mail já está liberado." };
+  if (error) return fail(error);
+  revalidatePath("/admin/configuracoes");
+  return { ok: true };
+}
+
+export async function removeAdminInviteAction(email: string): Promise<ActionResult> {
+  const admin = await getAdminOrNull();
+  if (!admin) return NOT_ALLOWED;
+  const { error } = await admin.supabase.from("admin_invites").delete().eq("email", email);
+  if (error) return fail(error);
+  revalidatePath("/admin/configuracoes");
+  return { ok: true };
+}

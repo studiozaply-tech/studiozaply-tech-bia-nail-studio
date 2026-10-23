@@ -11,4 +11,5 @@ TEST_URL="${PGURL%/*}/$DB"
 psql "$TEST_URL" -q -v ON_ERROR_STOP=1 -f supabase/tests/00_supabase_stub.sql
 for f in supabase/migrations/*.sql; do psql "$TEST_URL" -q -v ON_ERROR_STOP=1 -f "$f"; done
 psql "$TEST_URL" -q -v ON_ERROR_STOP=1 -f supabase/tests/01_booking_rules.sql >/dev/null
+psql "$TEST_URL" -q -v ON_ERROR_STOP=1 -f supabase/tests/02_admin_access.sql >/dev/null
 node scripts/test-concurrency.mjs "$TEST_URL"

@@ -149,6 +149,12 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      admin_invites: {
+        Row: { email: string; created_by: string | null; created_at: string };
+        Insert: { email: string };
+        Update: never;
+        Relationships: [];
+      };
       change_log: {
         Row: {
           id: number;
@@ -168,6 +174,8 @@ export type Database = {
     Views: { [_ in never]: never };
     Functions: {
       is_admin: { Args: Record<string, never>; Returns: boolean };
+      admin_exists: { Args: Record<string, never>; Returns: boolean };
+      claim_admin_access: { Args: { p_full_name?: string | null }; Returns: boolean };
       get_available_slots: { Args: { p_date: string }; Returns: { starts_at: string; label: string }[] };
       get_available_dates: { Args: { p_from: string; p_to: string }; Returns: string[] };
       create_public_booking: {

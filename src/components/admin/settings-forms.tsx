@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Copy, Plus, X } from "lucide-react";
+import { Copy, Mail, Plus, ShieldCheck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,11 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Alert } from "@/components/ui/alert";
-import { addSlotsAction, copySlotsAction, removeSlotAction, saveBookingRulesAction, saveBusinessHoursAction } from "@/app/admin/actions";
+import {
+  addAdminInviteAction,
+  addSlotsAction, copySlotsAction, removeSlotAction, saveBookingRulesAction, saveBusinessHoursAction,
+  removeAdminInviteAction,
+} from "@/app/admin/actions";
 import { WEEKDAY_NAMES } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 
@@ -284,5 +288,89 @@ export function BookingRulesForm({
         Salvar regras
       </Button>
     </form>
+  );
+}
+
+/* ----------------------------- Acessos ao painel ---------------------------- */
+
+export function AdminAccessManager({
+  admins,
+  invites,
+}: {
+  admins: { id: string; full_name: string }[];
+  invites: { email: string }[];
+}) {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState<string>();
+  const [pending, start] = useTransition();
+
+  const run = (fn: () => Promise<{ ok: boolean; error?: string }>, success: string, after?: () => void) =>
+    start(async () => {
+      const res = await fn();
+      if (!res.ok) return setError(res.error);
+      setError(undefined);
+      after?.();
+      toast.success(success);
+      router.refresh();
+    });
+
+  return (
+    <div className="flex flex-col gap-4">
+      <ul className="flex flex-col gap-2">
+        {admins.map((a) => (
+          <li key={a.id} className="flex items-center gap-3 rounded-xl bg-secondary/60 px-3 py-2 text-sm">
+            <ShieldCheck className="size-5 shrink-0 text-primary" aria-hidden />
+            <span className="min-w-0 flex-1 truncate font-semibold">{a.full_name || "Sem nome"}</span>
+            <span className="text-muted-foreground">Com acesso</span>
+          </li>
+        ))}
+        {invites.map((i) => (
+          <li key={i.email} className="flex items-center gap-3 rounded-xl bg-secondary/60 px-3 py-2 text-sm">
+            <Mail className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+            <span className="min-w-0 flex-1 truncate">{i.email}</span>
+            <span className="text-muted-foreground">Aguardando cadastro</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={`Remover ${i.email}`}
+              disabled={pending}
+              onClick={() => run(() => removeAdminInviteAction(i.email), "Liberação removida.")}
+            >
+              <X />
+            </Button>
+          </li>
+        ))}
+      </ul>
+
+      <form
+        className="flex flex-col gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          run(() => addAdminInviteAction(email), "E-mail liberado.", () => setEmail(""));
+        }}
+      >
+        <Label htmlFor="invite-email">Liberar novo e-mail</Label>
+        <div className="flex flex-wrap gap-2">
+          <Input
+            id="invite-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="nome@email.com"
+            className="min-w-0 flex-1"
+            required
+          />
+          <Button type="submit" loading={pending}>
+            {!pending && <Plus />} Liberar
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          A pessoa abre a tela de login do painel, escolhe <strong>Criar acesso</strong> e se cadastra com esse e-mail.
+        </p>
+      </form>
+      {error && <Alert variant="destructive">{error}</Alert>}
+    </div>
   );
 }

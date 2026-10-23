@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PageHeader, EmptyState } from "@/components/admin/page-header";
 import { BlockButton } from "@/components/admin/appointment-dialogs";
 import { DeleteBlockButton } from "@/components/admin/agenda-client";
-import { BookingRulesForm, BusinessHoursForm, SlotsManager } from "@/components/admin/settings-forms";
+import { AdminAccessManager, BookingRulesForm, BusinessHoursForm, SlotsManager } from "@/components/admin/settings-forms";
 import { requireAdmin } from "@/lib/auth";
 import { formatDateShort, toDateKey, toTimeKey } from "@/lib/datetime";
 
@@ -12,7 +12,7 @@ export const metadata = { title: "Configurações" };
 
 export default async function ConfiguracoesPage() {
   const { supabase } = await requireAdmin();
-  const [hoursRes, slotsRes, blocksRes, proRes] = await Promise.all([
+  const [hoursRes, slotsRes, blocksRes, proRes, adminsRes, invitesRes] = await Promise.all([
     supabase.from("business_hours").select("weekday, is_open, open_time, close_time").order("weekday"),
     supabase.from("available_slots").select("id, weekday, start_time").order("start_time"),
     supabase.from("schedule_blocks").select("id, starts_at, ends_at, all_day, reason").gt("ends_at", new Date().toISOString()).order("starts_at"),
@@ -21,6 +21,8 @@ export default async function ConfiguracoesPage() {
       .select("min_advance_minutes, booking_window_days, max_active_bookings_per_phone, welcome_message")
       .eq("is_primary", true)
       .maybeSingle(),
+    supabase.from("profiles").select("id, full_name").eq("role", "admin").order("created_at"),
+    supabase.from("admin_invites").select("email").order("created_at"),
   ]);
 
   if (hoursRes.error || slotsRes.error || blocksRes.error || proRes.error) {
@@ -101,6 +103,18 @@ export default async function ConfiguracoesPage() {
             </CardHeader>
             <CardContent>
               <BookingRulesForm initial={proRes.data} />
+            </CardContent>
+          </Card>
+        )}
+
+        {!adminsRes.error && (
+          <Card id="acessos">
+            <CardHeader>
+              <CardTitle>Acessos ao painel</CardTitle>
+              <CardDescription>Quem pode entrar no painel e ver os agendamentos.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AdminAccessManager admins={adminsRes.data} invites={invitesRes.data ?? []} />
             </CardContent>
           </Card>
         )}

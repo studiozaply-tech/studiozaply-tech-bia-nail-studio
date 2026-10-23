@@ -12,16 +12,14 @@ Supabase PostgreSQL + Supabase Auth.
 2. **Aplique as migrations**, em ordem, pelo SQL Editor do Supabase (ou `supabase db push` com a CLI):
    - `supabase/migrations/20261023120000_initial_schema.sql` (tabelas, RLS, funções)
    - `supabase/migrations/20261023120100_initial_config.sql` (os 10 serviços, expediente seg–sáb 13h–18h)
-3. **Crie o acesso da Beatriz**: Supabase > Authentication > Users > *Add user* (e-mail e senha).
-   Depois, no SQL Editor:
-   ```sql
-   insert into public.profiles (id, full_name, role)
-   select id, 'Beatriz Abreu', 'admin' from auth.users where email = 'EMAIL-DA-BEATRIZ';
-
-   update public.professionals
-   set user_id = (select id from auth.users where email = 'EMAIL-DA-BEATRIZ');
-   ```
-   Recomendado: em Authentication > Providers > Email, desative *Allow new users to sign up*.
+   - `supabase/migrations/20261023150000_admin_access.sql` (cadastro de acesso pela tela de login)
+3. **Crie o acesso da Beatriz** em `/admin/login` > *Criar acesso*. Enquanto o painel não tem nenhuma
+   admin, a primeira conta criada ali vira a administradora (e fica ligada à profissional).
+   Depois disso, novos acessos só funcionam para e-mails liberados em
+   *Configurações > Acessos ao painel*; contas sem liberação não veem nada.
+   Mantenha ligado em Authentication > Sign In / Providers > Email o *Allow new users to sign up*.
+   Se a confirmação de e-mail estiver ligada, adicione `https://SEU-DOMINIO/**` em
+   Authentication > URL Configuration > Redirect URLs.
 4. **Configure o app** (opcional): o código já aponta para o projeto Supabase de produção. Para usar outro projeto, `cp .env.example .env.local` e preencha URL e chave **anon/publishable**.
 5. `npm install` e `npm run dev` → http://localhost:3000 (painel em `/admin`).
 6. **Primeiro uso do painel**: em *Configurações > Horários disponíveis*, cadastre os horários de
