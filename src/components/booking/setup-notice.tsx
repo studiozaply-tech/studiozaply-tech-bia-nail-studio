@@ -2,7 +2,7 @@ import { AlertTriangle } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 
 export function SetupNotice({ message }: { message?: string }) {
-  const build = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7);
+  const build = (process.env.VERCEL_GIT_COMMIT_SHA || process.env.COMMIT_REF)?.slice(0, 7);
   return (
     <Alert variant="warning">
       <AlertTriangle aria-hidden />
