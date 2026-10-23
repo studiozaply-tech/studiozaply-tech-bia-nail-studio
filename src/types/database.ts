@@ -168,6 +168,11 @@ export type Database = {
     Views: { [_ in never]: never };
     Functions: {
       is_admin: { Args: Record<string, never>; Returns: boolean };
+      first_admin_available: { Args: Record<string, never>; Returns: boolean };
+      create_first_admin: {
+        Args: { p_full_name: string; p_email: string; p_password: string; p_code: string };
+        Returns: undefined;
+      };
       get_available_slots: { Args: { p_date: string }; Returns: { starts_at: string; label: string }[] };
       get_available_dates: { Args: { p_from: string; p_to: string }; Returns: string[] };
       create_public_booking: {
