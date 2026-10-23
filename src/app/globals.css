@@ -1,26 +1,101 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
+/*
+ * Identidade visual · BEATRIZ ABREU
+ * Roxo #8E35A8 · Lilás #C58ADD · Roxo-escuro #4A145A
+ * Branco #FFFCFF · Fundo lilás-claro #F8F0FB · Texto #29212D
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --radius: 1rem;
+
+  --background: #f8f0fb;
+  --foreground: #29212d;
+  --card: #fffcff;
+  --card-foreground: #29212d;
+  --popover: #fffcff;
+  --popover-foreground: #29212d;
+
+  --primary: #8e35a8;
+  --primary-foreground: #fffcff;
+  --primary-dark: #4a145a;
+  --secondary: #f1e2f7;
+  --secondary-foreground: #4a145a;
+  --accent: #c58add;
+  --accent-foreground: #29212d;
+  --muted: #f3e8f7;
+  --muted-foreground: #6b5a72;
+
+  --destructive: #b42318;
+  --destructive-foreground: #fffcff;
+  --success: #1d7a46;
+  --success-soft: #e3f4ea;
+  --warning: #9a5b00;
+  --warning-soft: #fff1d6;
+
+  --border: #ead6f2;
+  --input: #dcc3e8;
+  --ring: #8e35a8;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-dark: var(--primary-dark);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 8px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-playfair), ui-serif, Georgia, serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+  }
+  :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

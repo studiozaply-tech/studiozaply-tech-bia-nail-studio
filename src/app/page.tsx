@@ -1,103 +1,90 @@
-import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, CalendarHeart, Clock, Lock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { BrandName } from "@/components/brand/brand-name";
+import { ServiceCardContent, serviceCardClass } from "@/components/booking/service-card";
+import { SetupNotice } from "@/components/booking/setup-notice";
+import { DEFAULT_STUDIO, getActiveServices, getBusinessHours, getStudio, summarizeHours, type PublicService } from "@/lib/data/public";
+import { MissingSupabaseConfigError } from "@/lib/supabase/env";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  let studio = DEFAULT_STUDIO;
+  let services: PublicService[] = [];
+  let hours: string | null = null;
+  let loadError: string | null = null;
+
+  try {
+    [studio, services, hours] = await Promise.all([getStudio(), getActiveServices(), getBusinessHours().then(summarizeHours)]);
+  } catch (e) {
+    loadError = e instanceof MissingSupabaseConfigError ? e.message : "Atualize a página em alguns instantes.";
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col px-5 pb-28 pt-6 sm:pb-12">
+      <header className="flex justify-center">
+        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">{studio.brand_name}</span>
+      </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+      <section className="mt-10 flex flex-col items-center text-center animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <span className="mb-5 flex size-16 items-center justify-center rounded-full bg-card text-primary shadow-md shadow-primary/10" aria-hidden>
+          <CalendarHeart className="size-8" />
+        </span>
+        <h1>
+          <BrandName name={studio.display_name} href={null} className="text-4xl tracking-[0.18em] sm:text-5xl" />
+        </h1>
+        <p className="mt-4 max-w-md text-lg leading-relaxed text-muted-foreground">{studio.welcome_message}</p>
+        {hours && (
+          <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-card px-4 py-2 text-sm font-medium text-primary-dark">
+            <Clock className="size-4" aria-hidden /> {hours}
+          </p>
+        )}
+        <Button asChild size="lg" className="mt-8 hidden w-full max-w-xs sm:inline-flex">
+          <Link href="/agendar">
+            Agendar agora <ArrowRight />
+          </Link>
+        </Button>
+      </section>
+
+      <section className="mt-12" aria-labelledby="servicos">
+        <h2 id="servicos" className="mb-4 font-display text-2xl font-semibold text-primary-dark">
+          Serviços
+        </h2>
+        {loadError ? (
+          <SetupNotice message={loadError} />
+        ) : services.length === 0 ? (
+          <p className="rounded-2xl bg-card p-6 text-center text-muted-foreground">Nenhum serviço disponível no momento.</p>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {services.map((s) => (
+              <li key={s.id}>
+                <Link href={`/agendar?servico=${s.id}`} className={serviceCardClass} aria-label={`Agendar ${s.name}`}>
+                  <ServiceCardContent name={s.name} description={s.description} priceCents={s.price_cents} actionLabel="Agendar" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <footer className="mt-12 flex justify-center">
+        <Link
+          href="/admin"
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs text-muted-foreground hover:text-primary"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+          <Lock className="size-3.5" aria-hidden /> Área da profissional
+        </Link>
       </footer>
-    </div>
+
+      {/* Botão fixo no celular: sempre ao alcance do polegar */}
+      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-border/60 bg-background/90 p-4 backdrop-blur sm:hidden">
+        <Button asChild size="xl">
+          <Link href="/agendar">
+            Agendar agora <ArrowRight />
+          </Link>
+        </Button>
+      </div>
+    </main>
   );
 }
