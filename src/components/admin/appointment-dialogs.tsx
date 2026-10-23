@@ -327,14 +327,23 @@ export function NewAppointmentButton(props: {
   defaultClient?: { fullName: string; phone: string };
   label?: string;
   variant?: "default" | "outline";
+  autoOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(props.autoOpen ?? false);
   return (
     <>
       <Button onClick={() => setOpen(true)} variant={props.variant}>
         <CalendarPlus /> {props.label ?? "Novo agendamento"}
       </Button>
-      {open && <NewAppointmentDialog open={open} onOpenChange={setOpen} {...props} />}
+      {open && (
+        <NewAppointmentDialog
+          open={open}
+          onOpenChange={setOpen}
+          services={props.services}
+          defaultDate={props.defaultDate}
+          defaultClient={props.defaultClient}
+        />
+      )}
     </>
   );
 }

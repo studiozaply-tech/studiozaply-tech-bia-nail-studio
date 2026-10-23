@@ -14,9 +14,9 @@ export default async function ServicosPage() {
     .order("name");
 
   return (
-    <>
+    <div className="mx-auto max-w-4xl">
       <PageHeader title="Serviços" description="Crie, edite preços e escolha o que aparece para as clientes." />
       {error ? <Alert variant="destructive">Não foi possível carregar os serviços.</Alert> : <ServicesManager services={data ?? []} />}
-    </>
+    </div>
   );
 }

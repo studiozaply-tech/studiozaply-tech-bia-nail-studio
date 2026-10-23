@@ -30,7 +30,7 @@ export default async function ConfiguracoesPage() {
   const hours = hoursRes.data;
 
   return (
-    <>
+    <div className="mx-auto max-w-5xl">
       <PageHeader title="Configurações" description="Fuso horário: América/São Paulo" />
       <div className="flex flex-col gap-6">
         <Card>
@@ -105,6 +105,6 @@ export default async function ConfiguracoesPage() {
           </Card>
         )}
       </div>
-    </>
+    </div>
   );
 }

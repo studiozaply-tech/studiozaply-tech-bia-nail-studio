@@ -34,7 +34,7 @@ export const metadata = { title: "Agenda" };
 type View = "dia" | "semana" | "mes";
 type Block = { id: string; starts_at: string; ends_at: string; all_day: boolean; reason: string | null };
 
-export default async function AgendaPage({ searchParams }: { searchParams: Promise<{ visao?: string; data?: string; canceladas?: string }> }) {
+export default async function AgendaPage({ searchParams }: { searchParams: Promise<{ visao?: string; data?: string; canceladas?: string; novo?: string }> }) {
   const params = await searchParams;
   const view: View = params.visao === "semana" || params.visao === "mes" ? params.visao : "dia";
   const date: DateKey = params.data && isDateKey(params.data) ? params.data : todayKey();
@@ -92,12 +92,12 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
         : formatMonthYear(date);
 
   return (
-    <>
+    <div className="mx-auto max-w-6xl">
       <PageHeader
         title="Agenda"
         actions={
           <>
-            <NewAppointmentButton services={services} defaultDate={view === "dia" ? date : undefined} />
+            <NewAppointmentButton services={services} defaultDate={view === "dia" ? date : undefined} autoOpen={params.novo === "1"} />
             <BlockButton defaultDate={view === "dia" ? date : undefined} />
           </>
         }
@@ -244,7 +244,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
           </p>
         </div>
       )}
-    </>
+    </div>
   );
 }
 

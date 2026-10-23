@@ -37,7 +37,7 @@ export default async function ClientesPage({ searchParams }: { searchParams: Pro
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
   return (
-    <>
+    <div className="mx-auto max-w-4xl">
       <PageHeader title="Clientes" description={count != null ? `${count} cliente${count === 1 ? "" : "s"}` : undefined} />
 
       <form className="mb-5 flex gap-2" role="search">
@@ -96,6 +96,6 @@ export default async function ClientesPage({ searchParams }: { searchParams: Pro
           )}
         </nav>
       )}
-    </>
+    </div>
   );
 }

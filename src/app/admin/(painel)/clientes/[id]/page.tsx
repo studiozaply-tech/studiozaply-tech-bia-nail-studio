@@ -35,7 +35,7 @@ export default async function ClienteDetalhePage({ params }: { params: Promise<{
   const spent = completed.reduce((s, a) => s + a.service_price_cents, 0);
 
   return (
-    <>
+    <div className="mx-auto max-w-6xl">
       <Button asChild variant="ghost" size="sm" className="-ml-2 mb-3">
         <Link href="/admin/clientes">
           <ArrowLeft /> Clientes
@@ -105,6 +105,6 @@ export default async function ClienteDetalhePage({ params }: { params: Promise<{
           </CardContent>
         </Card>
       </div>
-    </>
+    </div>
   );
 }
