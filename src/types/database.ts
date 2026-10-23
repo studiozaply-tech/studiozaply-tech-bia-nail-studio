@@ -168,8 +168,8 @@ export type Database = {
     Views: { [_ in never]: never };
     Functions: {
       is_admin: { Args: Record<string, never>; Returns: boolean };
-      first_admin_available: { Args: Record<string, never>; Returns: boolean };
-      create_first_admin: {
+      admin_create_signup_code: { Args: Record<string, never>; Returns: string };
+      create_account: {
         Args: { p_full_name: string; p_email: string; p_password: string; p_code: string };
         Returns: undefined;
       };

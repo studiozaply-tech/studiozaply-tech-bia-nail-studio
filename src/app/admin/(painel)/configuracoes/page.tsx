@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PageHeader, EmptyState } from "@/components/admin/page-header";
 import { BlockButton } from "@/components/admin/appointment-dialogs";
 import { DeleteBlockButton } from "@/components/admin/agenda-client";
-import { BookingRulesForm, BusinessHoursForm, SlotsManager } from "@/components/admin/settings-forms";
+import { BookingRulesForm, BusinessHoursForm, SignupCodeGenerator, SlotsManager } from "@/components/admin/settings-forms";
 import { requireAdmin } from "@/lib/auth";
 import { formatDateShort, toDateKey, toTimeKey } from "@/lib/datetime";
 
@@ -104,6 +104,19 @@ export default async function ConfiguracoesPage() {
             </CardContent>
           </Card>
         )}
+
+        <Card id="convites">
+          <CardHeader>
+            <CardTitle>Novas contas no painel</CardTitle>
+            <CardDescription>
+              Gere um código de convite para quem vai criar uma conta. Quem se cadastra tem acesso completo ao painel,
+              então só envie para pessoas de confiança.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SignupCodeGenerator />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

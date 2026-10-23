@@ -403,3 +403,13 @@ export async function updateClientAction(input: z.input<typeof clientSchema>): P
   refreshAdmin();
   return { ok: true };
 }
+
+/* ------------------------------- Convites ------------------------------- */
+
+export async function createSignupCodeAction(): Promise<ActionResult<string>> {
+  const admin = await getAdminOrNull();
+  if (!admin) return NOT_ALLOWED;
+  const { data, error } = await admin.supabase.rpc("admin_create_signup_code");
+  if (error || !data) return fail(error);
+  return { ok: true, data };
+}

@@ -6,17 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
-import { createFirstAdmin, type FirstAdminState } from "./actions";
+import { signUp, type SignUpState } from "./actions";
 
-export function FirstAdminForm() {
-  const [state, action, pending] = useActionState<FirstAdminState, FormData>(createFirstAdmin, {});
+export function SignUpForm() {
+  const [state, action, pending] = useActionState<SignUpState, FormData>(signUp, {});
 
   return (
     <form action={action} className="flex flex-col gap-4">
       <div>
-        <h2 className="text-lg font-semibold">Primeiro acesso</h2>
+        <h2 className="text-lg font-semibold">Criar nova conta</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Crie a conta que vai cuidar da agenda. Depois disso, este cadastro é fechado.
+          Para se cadastrar, peça um código de convite para quem já usa o painel.
         </p>
       </div>
       <div className="flex flex-col gap-2">
@@ -37,7 +37,7 @@ export function FirstAdminForm() {
         <Input id="passwordConfirm" name="passwordConfirm" type="password" autoComplete="new-password" minLength={8} required />
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="code">Código de acesso</Label>
+        <Label htmlFor="code">Código de convite</Label>
         <Input id="code" name="code" autoComplete="off" autoCapitalize="characters" placeholder="Ex.: ABCD-1234" required />
         <p className="text-xs text-muted-foreground">Pode digitar com ou sem hífen, em maiúsculas ou minúsculas.</p>
       </div>
