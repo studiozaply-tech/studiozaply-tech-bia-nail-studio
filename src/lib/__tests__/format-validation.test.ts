@@ -34,6 +34,7 @@ describe("formatação", () => {
 
 describe("validação da reserva no servidor", () => {
   const base = {
+    professionalId: "3c8e2a41-0d7b-4e2f-9a5c-6b1d2e3f4a5b",
     serviceId: "7b1f7b52-6a3c-4f55-9d2e-2a7b0f5f9d11",
     startsAt: "2026-10-26T16:00:00.000Z",
     fullName: "  Maria   da Silva ",
@@ -53,6 +54,7 @@ describe("validação da reserva no servidor", () => {
     expect(publicBookingSchema.safeParse({ ...base, phone: "999" }).success).toBe(false);
     expect(publicBookingSchema.safeParse({ ...base, startsAt: "amanhã" }).success).toBe(false);
     expect(publicBookingSchema.safeParse({ ...base, serviceId: "x" }).success).toBe(false);
+    expect(publicBookingSchema.safeParse({ ...base, professionalId: "x" }).success).toBe(false);
     expect(publicBookingSchema.safeParse({ ...base, notes: "x".repeat(501) }).success).toBe(false);
   });
 });

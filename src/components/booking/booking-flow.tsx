@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import {
   AlertCircle,
@@ -50,13 +50,19 @@ const STEP_TITLES: Record<Step, string> = {
 };
 
 type Props = {
+  professionalId: string;
+  /** "" para o estúdio principal ou "/p/<link>" para os outros. */
+  basePath: string;
   services: PublicService[];
   initialServiceId?: string;
   bookingWindowDays: number;
   displayName: string;
 };
 
-export function BookingFlow({ services, initialServiceId, bookingWindowDays, displayName }: Props) {
+/** Estúdio da página: todas as consultas e a reserva usam este id. */
+const StudioContext = createContext({ professionalId: "", basePath: "", displayName: "" });
+
+export function BookingFlow({ professionalId, basePath, services, initialServiceId, bookingWindowDays, displayName }: Props) {
   const initialService = services.find((s) => s.id === initialServiceId) ?? null;
   const [step, setStep] = useState<Step>(initialService ? "datetime" : "service");
   const [service, setService] = useState<PublicService | null>(initialService);
@@ -98,6 +104,7 @@ export function BookingFlow({ services, initialServiceId, bookingWindowDays, dis
   );
 
   return (
+    <StudioContext.Provider value={{ professionalId, basePath, displayName }}>
     <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col px-5 pb-10 pt-4">
       <header className="flex items-center justify-between gap-2">
         {step !== "success" && stepIndex > 0 ? (
@@ -106,12 +113,12 @@ export function BookingFlow({ services, initialServiceId, bookingWindowDays, dis
           </Button>
         ) : (
           <Button asChild variant="ghost" size="sm" className="-ml-2 h-11 px-3 text-base">
-            <Link href="/">
+            <Link href={basePath || "/"}>
               <Home /> Início
             </Link>
           </Button>
         )}
-        <BrandName name={displayName} className="text-sm tracking-[0.18em]" />
+        <BrandName name={displayName} href={basePath || "/"} className="text-sm tracking-[0.18em]" />
       </header>
 
       {step !== "success" && (
@@ -208,6 +215,7 @@ export function BookingFlow({ services, initialServiceId, bookingWindowDays, dis
         {step === "success" && confirmation && <SuccessStep confirmation={confirmation} fullName={fullName} />}
       </div>
     </div>
+    </StudioContext.Provider>
   );
 }
 
@@ -268,6 +276,7 @@ function DateTimeStep({
   onSlotSelect: (s: Slot) => void;
   onChangeService: () => void;
 }) {
+  const { professionalId } = useContext(StudioContext);
   const today = todayKey();
   const minMonth = startOfMonth(today);
   const maxMonth = startOfMonth(addDays(today, bookingWindowDays));
@@ -289,7 +298,7 @@ function DateTimeStep({
     setDatesLoading(true);
     setDatesError(null);
     const lastDay = addDays(addMonths(month, 1), -1);
-    fetchAvailableDates(month, lastDay).then((res) => {
+    fetchAvailableDates(professionalId, month, lastDay).then((res) => {
       if (cancelled) return;
       setDatesLoading(false);
       if (!res.ok) {
@@ -307,20 +316,20 @@ function DateTimeStep({
     return () => {
       cancelled = true;
     };
-  }, [month, reloadKey, maxMonth]);
+  }, [professionalId, month, reloadKey, maxMonth]);
 
   // Horários do dia escolhido (sempre recarrega para refletir reservas novas).
   const loadSlots = useCallback((d: DateKey) => {
     setSlotsError(null);
     startSlots(async () => {
-      const res = await fetchAvailableSlots(d);
+      const res = await fetchAvailableSlots(professionalId, d);
       if (res.ok) setSlots(res.data);
       else {
         setSlots(null);
         setSlotsError(res.error);
       }
     });
-  }, []);
+  }, [professionalId]);
 
   useEffect(() => {
     if (date) loadSlots(date);
@@ -572,6 +581,7 @@ function ConfirmStep({
   onSlotLost: (message: string) => void;
   onConfirmed: (c: BookingConfirmation) => void;
 }) {
+  const { professionalId } = useContext(StudioContext);
   const [submitting, startSubmit] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const submittedRef = useRef(false);
@@ -579,13 +589,13 @@ function ConfirmStep({
   // Revalida no servidor assim que a tela abre.
   useEffect(() => {
     let cancelled = false;
-    checkSlotAvailable(slot.startsAt).then((res) => {
+    checkSlotAvailable(professionalId, slot.startsAt).then((res) => {
       if (!cancelled && res.ok && !res.data) onSlotLost(SLOT_TAKEN_MESSAGE);
     });
     return () => {
       cancelled = true;
     };
-  }, [slot.startsAt, onSlotLost]);
+  }, [professionalId, slot.startsAt, onSlotLost]);
 
   const confirm = () => {
     if (submittedRef.current) return; // evita duplo toque
@@ -593,6 +603,7 @@ function ConfirmStep({
     setError(null);
     startSubmit(async () => {
       const res = await createBooking({
+        professionalId,
         serviceId: service.id,
         startsAt: slot.startsAt,
         fullName,
@@ -707,6 +718,7 @@ function SummaryRow({
 /* ------------------------------------------------------------------ */
 
 function SuccessStep({ confirmation, fullName }: { confirmation: BookingConfirmation; fullName: string }) {
+  const { basePath, displayName } = useContext(StudioContext);
   const firstName = fullName.trim().split(" ")[0];
   const dateKey = toDateKey(confirmation.startsAt);
 
@@ -723,7 +735,7 @@ function SuccessStep({ confirmation, fullName }: { confirmation: BookingConfirma
       `DTSTAMP:${stamp(new Date())}`,
       `DTSTART:${stamp(start)}`,
       `DTEND:${stamp(end)}`,
-      `SUMMARY:${confirmation.serviceName} · Beatriz Abreu`,
+      `SUMMARY:${confirmation.serviceName} · ${displayName}`,
       "END:VEVENT",
       "END:VCALENDAR",
     ].join("\r\n");
@@ -755,7 +767,7 @@ function SuccessStep({ confirmation, fullName }: { confirmation: BookingConfirma
       </div>
 
       <p className="mt-4 text-sm text-muted-foreground">
-        Sua reserva foi registrada e aguarda a confirmação da Beatriz. Se precisar mudar algo, fale com ela.
+        Sua reserva foi registrada e aguarda a confirmação da profissional. Se precisar mudar algo, fale com ela.
       </p>
 
       <div className="mt-auto flex w-full flex-col gap-2 pt-8">
@@ -763,7 +775,7 @@ function SuccessStep({ confirmation, fullName }: { confirmation: BookingConfirma
           <CalendarDays /> Salvar no meu calendário
         </Button>
         <Button asChild size="xl">
-          <Link href="/">
+          <Link href={basePath || "/"}>
             <Home /> Voltar ao início
           </Link>
         </Button>

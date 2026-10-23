@@ -18,7 +18,7 @@ import {
   StatTile,
   type TimelineItem,
 } from "@/components/admin/dashboard-widgets";
-import { requireAdmin } from "@/lib/auth";
+import { getMyStudio, requireAdmin } from "@/lib/auth";
 import { ADMIN_APPOINTMENT_FIELDS } from "@/lib/data/admin-types";
 import {
   addDays,
@@ -49,7 +49,8 @@ function addMinutes(time: string, minutes: number) {
 }
 
 export default async function DashboardPage() {
-  const { supabase } = await requireAdmin();
+  const { supabase, professionalId } = await requireAdmin();
+  const studio = await getMyStudio();
   const today = todayKey();
   const weekStart = startOfWeek(today);
   const weekEnd = addDays(weekStart, 7);
@@ -82,9 +83,9 @@ export default async function DashboardPage() {
       .limit(5),
     supabase.from("appointments").select(ADMIN_APPOINTMENT_FIELDS, { count: "exact" }).eq("status", "pending").gte("starts_at", nowIso).order("starts_at").limit(10),
     supabase.from("clients").select("id", { count: "exact", head: true }),
-    supabase.from("services").select("id, name, price_cents, is_active").order("sort_order"),
+    supabase.from("services").select("id, name, price_cents, is_active").eq("professional_id", professionalId).order("sort_order"),
     supabase.from("available_slots").select("id", { count: "exact", head: true }),
-    supabase.from("business_hours").select("weekday, is_open, open_time, close_time").eq("weekday", weekdayOf(today)).maybeSingle(),
+    supabase.from("business_hours").select("weekday, is_open, open_time, close_time").eq("professional_id", professionalId).eq("weekday", weekdayOf(today)).maybeSingle(),
   ]);
 
   const error = rangeRes.error ?? todayRes.error ?? upcomingRes.error ?? pendingRes.error ?? servicesRes.error;
@@ -161,7 +162,7 @@ export default async function DashboardPage() {
 
         {/* Saudação */}
         <section className="relative overflow-hidden rounded-3xl bg-card px-6 py-6 shadow-sm shadow-primary/5 sm:pr-64">
-          <p className="text-sm text-muted-foreground">{salute}, Beatriz</p>
+          <p className="text-sm text-muted-foreground">{salute}, {studio.firstName}</p>
           <h1 className="mt-1 text-2xl font-semibold text-foreground sm:text-[26px]">Confira sua agenda de hoje</h1>
           <p className="mt-1 text-muted-foreground">{formatDateLong(today)} · tenha um ótimo dia!</p>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -302,11 +303,11 @@ export default async function DashboardPage() {
         <Panel>
           <div className="flex items-center gap-4">
             <div className="flex flex-col items-center gap-1">
-              <Avatar name="Beatriz Abreu" className="size-16 rounded-full text-lg ring-4 ring-secondary" />
-              <span className="text-xs font-semibold text-foreground">Beatriz</span>
+              <Avatar name={studio.fullName} className="size-16 rounded-full text-lg ring-4 ring-secondary" />
+              <span className="text-xs font-semibold text-foreground">{studio.firstName}</span>
             </div>
             <div className="min-w-0">
-              <p className="font-semibold text-foreground">{salute}, Beatriz</p>
+              <p className="font-semibold text-foreground">{salute}, {studio.firstName}</p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {todayList.length
                   ? `Você tem ${todayList.length} ${todayList.length === 1 ? "atendimento" : "atendimentos"} hoje.`

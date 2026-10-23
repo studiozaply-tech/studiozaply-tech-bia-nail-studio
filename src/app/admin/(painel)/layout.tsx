@@ -10,13 +10,14 @@ import {
   SignOutButton,
 } from "@/components/admin/admin-nav";
 import { ThemeToggle } from "@/components/admin/theme-toggle";
-import { requireAdmin } from "@/lib/auth";
+import { getMyStudio, requireAdmin } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: { default: "Painel", template: "%s · Painel" }, robots: { index: false } };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const { supabase } = await requireAdmin();
+  const studio = await getMyStudio();
   const { count: pending } = await supabase
     .from("appointments")
     .select("id", { count: "exact", head: true })
@@ -41,11 +42,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="min-h-dvh bg-background lg:grid lg:grid-cols-[248px_1fr]">
       <aside className="sticky top-0 hidden h-dvh flex-col gap-7 overflow-y-auto bg-sidebar px-5 py-6 lg:flex">
-        <BrandName href="/admin" className="text-base" />
+        <BrandName name={studio.displayName || undefined} href="/admin" className="text-base" />
         <NewAppointmentShortcut />
         <AdminSidebar />
         <div className="mt-auto flex flex-col gap-3">
-          <BookingLinkCard />
+          <BookingLinkCard path={studio.publicPath} />
           <SignOutButton withLabel />
         </div>
       </aside>
@@ -53,7 +54,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <div className="flex min-w-0 flex-col">
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border/60 bg-background/90 px-4 backdrop-blur sm:px-6">
           <span className="lg:hidden">
-            <BrandName href="/admin" className="text-sm" />
+            <BrandName name={studio.displayName || undefined} href="/admin" className="text-sm" />
           </span>
           <form action="/admin/clientes" className="relative ml-auto hidden w-full max-w-xs md:block lg:ml-0" role="search">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />

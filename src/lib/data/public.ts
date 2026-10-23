@@ -3,31 +3,34 @@ import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/types/database";
 
 export type PublicService = Pick<Tables<"services">, "id" | "name" | "description" | "price_cents">;
-export type Studio = Pick<Tables<"professionals">, "display_name" | "brand_name" | "welcome_message" | "booking_window_days">;
+export type Studio = Pick<
+  Tables<"professionals">,
+  "id" | "slug" | "display_name" | "brand_name" | "welcome_message" | "booking_window_days" | "is_primary"
+>;
 
-export const DEFAULT_STUDIO: Studio = {
-  display_name: "BEATRIZ ABREU",
-  brand_name: "Bia Nail Studio",
-  welcome_message: "Unhas lindas, com carinho e cuidado em cada detalhe. Escolha seu serviço e reserve seu horário em poucos toques.",
-  booking_window_days: 60,
-};
-
-export async function getStudio(): Promise<Studio> {
+/** Estúdio pelo link (/p/<slug>) ou, sem link, o estúdio principal. null quando não existe. */
+export async function getStudio(slug?: string): Promise<Studio | null> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("professionals")
-    .select("display_name, brand_name, welcome_message, booking_window_days")
-    .eq("is_primary", true)
-    .maybeSingle();
+    .select("id, slug, display_name, brand_name, welcome_message, booking_window_days, is_primary");
+  query = slug ? query.eq("slug", slug) : query.eq("is_primary", true);
+  const { data, error } = await query.maybeSingle();
   if (error) throw error;
-  return data ?? DEFAULT_STUDIO;
+  return data;
 }
 
-export async function getActiveServices(): Promise<PublicService[]> {
+/** Caminho base das páginas públicas do estúdio. */
+export function studioBasePath(studio: Pick<Studio, "slug" | "is_primary">) {
+  return studio.is_primary ? "" : `/p/${studio.slug}`;
+}
+
+export async function getActiveServices(professionalId: string): Promise<PublicService[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("services")
     .select("id, name, description, price_cents")
+    .eq("professional_id", professionalId)
     .eq("is_active", true)
     .order("sort_order")
     .order("name");
@@ -35,9 +38,13 @@ export async function getActiveServices(): Promise<PublicService[]> {
   return data ?? [];
 }
 
-export async function getBusinessHours() {
+export async function getBusinessHours(professionalId: string) {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("business_hours").select("weekday, is_open, open_time, close_time").order("weekday");
+  const { data, error } = await supabase
+    .from("business_hours")
+    .select("weekday, is_open, open_time, close_time")
+    .eq("professional_id", professionalId)
+    .order("weekday");
   if (error) throw error;
   return data ?? [];
 }

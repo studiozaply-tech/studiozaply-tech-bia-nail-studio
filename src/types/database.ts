@@ -20,6 +20,7 @@ export type Database = {
       professionals: {
         Row: {
           id: string;
+          slug: string;
           display_name: string;
           brand_name: string;
           welcome_message: string | null;
@@ -43,6 +44,7 @@ export type Database = {
       services: {
         Row: {
           id: string;
+          professional_id: string;
           name: string;
           description: string | null;
           price_cents: number;
@@ -51,6 +53,7 @@ export type Database = {
           sort_order: number;
         } & Timestamps;
         Insert: {
+          professional_id?: string;
           name: string;
           description?: string | null;
           price_cents: number;
@@ -69,26 +72,34 @@ export type Database = {
         Relationships: [];
       };
       clients: {
-        Row: { id: string; full_name: string; phone: string; admin_notes: string | null } & Timestamps;
-        Insert: { full_name: string; phone: string; admin_notes?: string | null };
+        Row: { id: string; professional_id: string; full_name: string; phone: string; admin_notes: string | null } & Timestamps;
+        Insert: { professional_id?: string; full_name: string; phone: string; admin_notes?: string | null };
         Update: { full_name?: string; phone?: string; admin_notes?: string | null };
         Relationships: [];
       };
       business_hours: {
-        Row: { weekday: number; is_open: boolean; open_time: string | null; close_time: string | null; updated_at: string };
-        Insert: { weekday: number; is_open: boolean; open_time?: string | null; close_time?: string | null };
+        Row: {
+          professional_id: string;
+          weekday: number;
+          is_open: boolean;
+          open_time: string | null;
+          close_time: string | null;
+          updated_at: string;
+        };
+        Insert: { professional_id: string; weekday: number; is_open: boolean; open_time?: string | null; close_time?: string | null };
         Update: { is_open?: boolean; open_time?: string | null; close_time?: string | null };
         Relationships: [];
       };
       available_slots: {
-        Row: { id: string; weekday: number; start_time: string; is_active: boolean; created_at: string };
-        Insert: { weekday: number; start_time: string; is_active?: boolean };
+        Row: { id: string; professional_id: string; weekday: number; start_time: string; is_active: boolean; created_at: string };
+        Insert: { professional_id: string; weekday: number; start_time: string; is_active?: boolean };
         Update: { is_active?: boolean };
         Relationships: [];
       };
       schedule_blocks: {
         Row: {
           id: string;
+          professional_id: string;
           starts_at: string;
           ends_at: string;
           all_day: boolean;
@@ -103,6 +114,7 @@ export type Database = {
       appointments: {
         Row: {
           id: string;
+          professional_id: string;
           client_id: string;
           service_id: string | null;
           service_name: string;
@@ -124,7 +136,7 @@ export type Database = {
         Update: { internal_notes?: string | null };
         Relationships: [
           {
-            foreignKeyName: "appointments_client_id_fkey";
+            foreignKeyName: "appointments_client_same_professional";
             columns: ["client_id"];
             isOneToOne: false;
             referencedRelation: "clients";
@@ -158,6 +170,7 @@ export type Database = {
           old_data: Json | null;
           new_data: Json | null;
           changed_by: string | null;
+          professional_id: string | null;
           created_at: string;
         };
         Insert: never;
@@ -168,15 +181,22 @@ export type Database = {
     Views: { [_ in never]: never };
     Functions: {
       is_admin: { Args: Record<string, never>; Returns: boolean };
-      admin_create_signup_code: { Args: Record<string, never>; Returns: string };
-      create_account: {
-        Args: { p_full_name: string; p_email: string; p_password: string; p_code: string };
-        Returns: undefined;
+      current_professional_id: { Args: Record<string, never>; Returns: string | null };
+      request_account: { Args: { p_full_name: string; p_email: string; p_password: string }; Returns: undefined };
+      get_available_slots: {
+        Args: { p_professional_id: string; p_date: string };
+        Returns: { starts_at: string; label: string }[];
       };
-      get_available_slots: { Args: { p_date: string }; Returns: { starts_at: string; label: string }[] };
-      get_available_dates: { Args: { p_from: string; p_to: string }; Returns: string[] };
+      get_available_dates: { Args: { p_professional_id: string; p_from: string; p_to: string }; Returns: string[] };
       create_public_booking: {
-        Args: { p_service_id: string; p_starts_at: string; p_full_name: string; p_phone: string; p_notes?: string | null };
+        Args: {
+          p_professional_id: string;
+          p_service_id: string;
+          p_starts_at: string;
+          p_full_name: string;
+          p_phone: string;
+          p_notes?: string | null;
+        };
         Returns: {
           appointment_id: string;
           service_name: string;

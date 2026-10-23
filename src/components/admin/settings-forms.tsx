@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Copy, KeyRound, Plus, X } from "lucide-react";
+import { Copy, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,6 @@ import { Alert } from "@/components/ui/alert";
 import {
   addSlotsAction,
   copySlotsAction,
-  createSignupCodeAction,
   removeSlotAction,
   saveBookingRulesAction,
   saveBusinessHoursAction,
@@ -291,49 +290,5 @@ export function BookingRulesForm({
         Salvar regras
       </Button>
     </form>
-  );
-}
-
-export function SignupCodeGenerator() {
-  const [code, setCode] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
-
-  function generate() {
-    startTransition(async () => {
-      const res = await createSignupCodeAction();
-      if (!res.ok) return void toast.error(res.error);
-      setCode(res.data);
-    });
-  }
-
-  async function copy() {
-    if (!code) return;
-    try {
-      await navigator.clipboard.writeText(code);
-      toast.success("Código copiado.");
-    } catch {
-      toast.error("Não foi possível copiar. Anote o código.");
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-4">
-      {code && (
-        <div className="flex flex-wrap items-center gap-3 rounded-xl bg-secondary/60 px-4 py-3">
-          <p className="font-mono text-2xl font-semibold tracking-widest">{code}</p>
-          <Button type="button" variant="outline" size="sm" onClick={copy}>
-            <Copy /> Copiar
-          </Button>
-          <p className="w-full text-sm text-muted-foreground">
-            Vale para 1 cadastro, por 7 dias. A pessoa usa em &quot;Criar nova conta&quot;, na tela de login.
-          </p>
-        </div>
-      )}
-      <div>
-        <Button type="button" onClick={generate} loading={pending}>
-          {!pending && <KeyRound />} {code ? "Gerar outro código" : "Gerar código de convite"}
-        </Button>
-      </div>
-    </div>
   );
 }

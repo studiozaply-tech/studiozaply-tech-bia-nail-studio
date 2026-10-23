@@ -6,10 +6,11 @@ import { requireAdmin } from "@/lib/auth";
 export const metadata = { title: "Serviços" };
 
 export default async function ServicosPage() {
-  const { supabase } = await requireAdmin();
+  const { supabase, professionalId } = await requireAdmin();
   const { data, error } = await supabase
     .from("services")
     .select("id, name, description, price_cents, duration_minutes, is_active")
+    .eq("professional_id", professionalId)
     .order("sort_order")
     .order("name");
 

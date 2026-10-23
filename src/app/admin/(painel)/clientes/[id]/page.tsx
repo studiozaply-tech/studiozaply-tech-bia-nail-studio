@@ -18,12 +18,12 @@ export const metadata = { title: "Cliente" };
 export default async function ClienteDetalhePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!uuidSchema.safeParse(id).success) notFound();
-  const { supabase } = await requireAdmin();
+  const { supabase, professionalId } = await requireAdmin();
 
   const [clientRes, apptRes, servicesRes] = await Promise.all([
     supabase.from("clients").select("id, full_name, phone, admin_notes, created_at").eq("id", id).maybeSingle(),
     supabase.from("appointments").select(ADMIN_APPOINTMENT_FIELDS).eq("client_id", id).order("starts_at", { ascending: false }),
-    supabase.from("services").select("id, name, price_cents, is_active").order("sort_order"),
+    supabase.from("services").select("id, name, price_cents, is_active").eq("professional_id", professionalId).order("sort_order"),
   ]);
   if (!clientRes.data) notFound();
   const client = clientRes.data;

@@ -16,11 +16,11 @@ export function SignUpForm() {
       <div>
         <h2 className="text-lg font-semibold">Criar nova conta</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Para se cadastrar, peça um código de convite para quem já usa o painel.
+          Cada conta tem a própria agenda, clientes e serviços, separados das outras contas.
         </p>
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="fullName">Nome completo</Label>
+        <Label htmlFor="fullName">Seu nome ou do estúdio</Label>
         <Input id="fullName" name="fullName" autoComplete="name" defaultValue={state.fullName} key={`n-${state.fullName}`} required />
       </div>
       <div className="flex flex-col gap-2">
@@ -30,16 +30,11 @@ export function SignUpForm() {
       <div className="flex flex-col gap-2">
         <Label htmlFor="password">Senha</Label>
         <Input id="password" name="password" type="password" autoComplete="new-password" minLength={8} required />
-        <p className="text-xs text-muted-foreground">Pelo menos 8 caracteres.</p>
+        <p className="text-xs text-muted-foreground">Pelo menos 8 caracteres, com letras e números.</p>
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="passwordConfirm">Repita a senha</Label>
         <Input id="passwordConfirm" name="passwordConfirm" type="password" autoComplete="new-password" minLength={8} required />
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="code">Código de convite</Label>
-        <Input id="code" name="code" autoComplete="off" autoCapitalize="characters" placeholder="Ex.: ABCD-1234" required />
-        <p className="text-xs text-muted-foreground">Pode digitar com ou sem hífen, em maiúsculas ou minúsculas.</p>
       </div>
       {state.error && (
         <Alert variant="destructive">

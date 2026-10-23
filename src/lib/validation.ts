@@ -36,6 +36,7 @@ export const dateKeySchema = z.string().refine(isDateKey, "Data inválida.");
 export const timeKeySchema = z.string().refine(isTimeKey, "Horário inválido.");
 
 export const publicBookingSchema = z.object({
+  professionalId: uuidSchema,
   serviceId: uuidSchema,
   startsAt: isoInstantSchema,
   fullName: nameSchema,

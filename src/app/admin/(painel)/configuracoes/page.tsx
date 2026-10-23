@@ -4,22 +4,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PageHeader, EmptyState } from "@/components/admin/page-header";
 import { BlockButton } from "@/components/admin/appointment-dialogs";
 import { DeleteBlockButton } from "@/components/admin/agenda-client";
-import { BookingRulesForm, BusinessHoursForm, SignupCodeGenerator, SlotsManager } from "@/components/admin/settings-forms";
+import { BookingRulesForm, BusinessHoursForm, SlotsManager } from "@/components/admin/settings-forms";
 import { requireAdmin } from "@/lib/auth";
 import { formatDateShort, toDateKey, toTimeKey } from "@/lib/datetime";
 
 export const metadata = { title: "Configurações" };
 
 export default async function ConfiguracoesPage() {
-  const { supabase } = await requireAdmin();
+  const { supabase, professionalId } = await requireAdmin();
   const [hoursRes, slotsRes, blocksRes, proRes] = await Promise.all([
-    supabase.from("business_hours").select("weekday, is_open, open_time, close_time").order("weekday"),
+    supabase.from("business_hours").select("weekday, is_open, open_time, close_time").eq("professional_id", professionalId).order("weekday"),
     supabase.from("available_slots").select("id, weekday, start_time").order("start_time"),
     supabase.from("schedule_blocks").select("id, starts_at, ends_at, all_day, reason").gt("ends_at", new Date().toISOString()).order("starts_at"),
     supabase
       .from("professionals")
       .select("min_advance_minutes, booking_window_days, max_active_bookings_per_phone, welcome_message")
-      .eq("is_primary", true)
+      .eq("id", professionalId)
       .maybeSingle(),
   ]);
 
@@ -104,19 +104,6 @@ export default async function ConfiguracoesPage() {
             </CardContent>
           </Card>
         )}
-
-        <Card id="convites">
-          <CardHeader>
-            <CardTitle>Novas contas no painel</CardTitle>
-            <CardDescription>
-              Gere um código de convite para quem vai criar uma conta. Quem se cadastra tem acesso completo ao painel,
-              então só envie para pessoas de confiança.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SignupCodeGenerator />
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

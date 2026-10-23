@@ -8,14 +8,14 @@ const ATTEMPTS = 20;
 const setup = new pg.Client({ connectionString: url });
 await setup.connect();
 const { rows } = await setup.query(`
-  select s.id as service_id,
+  select s.id as service_id, s.professional_id,
          ((d::date + time '13:00') at time zone 'America/Sao_Paulo') as starts_at
   from public.services s,
        generate_series((now() at time zone 'America/Sao_Paulo')::date + 15,
                        (now() at time zone 'America/Sao_Paulo')::date + 22, '1 day') d
-  where s.name = 'Manicure' and extract(dow from d) = 3
+  where s.name = 'Manicure' and s.professional_id = (select id from public.professionals where is_primary) and extract(dow from d) = 3
   limit 1`);
-const { service_id, starts_at } = rows[0];
+const { service_id, professional_id, starts_at } = rows[0];
 await setup.end();
 
 const clients = await Promise.all(
@@ -29,7 +29,8 @@ const clients = await Promise.all(
 
 const results = await Promise.allSettled(
   clients.map((c, i) =>
-    c.query("select * from public.create_public_booking($1, $2, $3, $4)", [
+    c.query("select * from public.create_public_booking($1::uuid, $2::uuid, $3::timestamptz, $4, $5)", [
+      professional_id,
       service_id,
       starts_at,
       `Cliente Teste ${i}`,

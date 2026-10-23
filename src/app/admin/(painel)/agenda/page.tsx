@@ -39,7 +39,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
   const view: View = params.visao === "semana" || params.visao === "mes" ? params.visao : "dia";
   const date: DateKey = params.data && isDateKey(params.data) ? params.data : todayKey();
   const showCancelled = params.canceladas === "1";
-  const { supabase } = await requireAdmin();
+  const { supabase, professionalId } = await requireAdmin();
 
   const rangeStart = view === "dia" ? date : view === "semana" ? startOfWeek(date) : startOfMonth(date);
   const rangeEnd = view === "dia" ? addDays(date, 1) : view === "semana" ? addDays(rangeStart, 7) : addMonths(rangeStart, 1);
@@ -53,8 +53,8 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
     apptQuery,
     supabase.from("schedule_blocks").select("id, starts_at, ends_at, all_day, reason").lt("starts_at", to).gt("ends_at", from).order("starts_at"),
     supabase.from("available_slots").select("weekday, start_time").eq("is_active", true).order("start_time"),
-    supabase.from("business_hours").select("weekday, is_open, open_time, close_time"),
-    supabase.from("services").select("id, name, price_cents, is_active").order("sort_order"),
+    supabase.from("business_hours").select("weekday, is_open, open_time, close_time").eq("professional_id", professionalId),
+    supabase.from("services").select("id, name, price_cents, is_active").eq("professional_id", professionalId).order("sort_order"),
   ]);
   if (apptRes.error || blockRes.error || slotRes.error || hoursRes.error || servicesRes.error) {
     return <Alert variant="destructive">Não foi possível carregar a agenda. Atualize a página.</Alert>;

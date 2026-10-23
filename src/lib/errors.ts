@@ -12,10 +12,11 @@ const MESSAGES: Record<string, string> = {
   INVALID_PRICE: "Preço inválido.",
   INVALID_STATUS: "Status inválido.",
   INVALID_TRANSITION: "Essa ação não é permitida para o status atual do agendamento.",
-  TOO_MANY_BOOKINGS: "Você já tem reservas em aberto. Para marcar outra, fale com a Beatriz.",
+  TOO_MANY_BOOKINGS: "Você já tem reservas em aberto. Para marcar outra, fale com a profissional.",
   NOT_ALLOWED: "Você não tem permissão para fazer isso.",
   NOT_FOUND: "Agendamento não encontrado.",
   INVALID_RANGE: "Período inválido.",
+  TOO_MANY_REQUESTS: "Muitas tentativas agora. Tente de novo em alguns minutos.",
 };
 
 export const GENERIC_ERROR = "Algo deu errado. Tente novamente em instantes.";

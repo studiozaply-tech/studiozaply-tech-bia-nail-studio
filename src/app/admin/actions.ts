@@ -224,15 +224,18 @@ export async function saveServiceAction(id: string | null, input: z.input<typeof
   let error;
   if (id) {
     if (!uuidSchema.safeParse(id).success) return { ok: false, error: "Serviço inválido." };
-    ({ error } = await admin.supabase.from("services").update(row).eq("id", id));
+    ({ error } = await admin.supabase.from("services").update(row).eq("id", id).eq("professional_id", admin.professionalId));
   } else {
     const { data: last } = await admin.supabase
       .from("services")
       .select("sort_order")
+      .eq("professional_id", admin.professionalId)
       .order("sort_order", { ascending: false })
       .limit(1)
       .maybeSingle();
-    ({ error } = await admin.supabase.from("services").insert({ ...row, sort_order: (last?.sort_order ?? 0) + 10 }));
+    ({ error } = await admin.supabase
+      .from("services")
+      .insert({ ...row, professional_id: admin.professionalId, sort_order: (last?.sort_order ?? 0) + 10 }));
   }
   if (error?.code === "23505") return { ok: false, error: "Já existe um serviço com esse nome.", fieldErrors: { name: "Nome repetido." } };
   if (error) return fail(error);
@@ -244,7 +247,7 @@ export async function toggleServiceAction(id: string, isActive: boolean): Promis
   const admin = await getAdminOrNull();
   if (!admin) return NOT_ALLOWED;
   if (!uuidSchema.safeParse(id).success) return { ok: false, error: "Serviço inválido." };
-  const { error } = await admin.supabase.from("services").update({ is_active: isActive }).eq("id", id);
+  const { error } = await admin.supabase.from("services").update({ is_active: isActive }).eq("id", id).eq("professional_id", admin.professionalId);
   if (error) return fail(error);
   revalidatePath("/", "layout");
   return { ok: true };
@@ -275,6 +278,7 @@ export async function saveBusinessHoursAction(rows: z.input<typeof hoursSchema>)
 
   const { error } = await admin.supabase.from("business_hours").upsert(
     parsed.data.map((r) => ({
+      professional_id: admin.professionalId,
       weekday: r.weekday,
       is_open: r.isOpen,
       open_time: r.isOpen ? r.openTime : null,
@@ -299,9 +303,11 @@ export async function addSlotsAction(input: z.input<typeof addSlotsSchema>): Pro
   if (!parsed.success) return invalid(parsed.error);
 
   const rows = parsed.data.weekdays.flatMap((weekday) =>
-    parsed.data.times.map((time) => ({ weekday, start_time: time, is_active: true })),
+    parsed.data.times.map((time) => ({ professional_id: admin.professionalId, weekday, start_time: time, is_active: true })),
   );
-  const { error } = await admin.supabase.from("available_slots").upsert(rows, { onConflict: "weekday,start_time" });
+  const { error } = await admin.supabase
+    .from("available_slots")
+    .upsert(rows, { onConflict: "professional_id,weekday,start_time" });
   if (error) return fail(error);
   refreshAdmin();
   return { ok: true };
@@ -340,7 +346,9 @@ export async function copySlotsAction(fromWeekday: number, toWeekdays: number[])
   if (delError) return fail(delError);
 
   if (source.length) {
-    const rows = targets.flatMap((weekday) => source.map((s) => ({ weekday, start_time: s.start_time, is_active: s.is_active })));
+    const rows = targets.flatMap((weekday) =>
+      source.map((s) => ({ professional_id: admin.professionalId, weekday, start_time: s.start_time, is_active: s.is_active })),
+    );
     const { error } = await admin.supabase.from("available_slots").insert(rows);
     if (error) return fail(error);
   }
@@ -369,7 +377,7 @@ export async function saveBookingRulesAction(input: z.input<typeof rulesSchema>)
       max_active_bookings_per_phone: parsed.data.maxActiveBookingsPerPhone,
       welcome_message: parsed.data.welcomeMessage.trim() || null,
     })
-    .eq("is_primary", true);
+    .eq("id", admin.professionalId);
   if (error) return fail(error);
   revalidatePath("/", "layout");
   return { ok: true };
@@ -402,14 +410,4 @@ export async function updateClientAction(input: z.input<typeof clientSchema>): P
   if (error) return fail(error);
   refreshAdmin();
   return { ok: true };
-}
-
-/* ------------------------------- Convites ------------------------------- */
-
-export async function createSignupCodeAction(): Promise<ActionResult<string>> {
-  const admin = await getAdminOrNull();
-  if (!admin) return NOT_ALLOWED;
-  const { data, error } = await admin.supabase.rpc("admin_create_signup_code");
-  if (error || !data) return fail(error);
-  return { ok: true, data };
 }

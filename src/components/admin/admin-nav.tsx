@@ -64,10 +64,10 @@ export function AdminSidebar() {
   );
 }
 
-export function BookingLinkCard() {
+export function BookingLinkCard({ path }: { path: string }) {
   const [copied, setCopied] = useState(false);
   const copy = async () => {
-    const url = window.location.origin;
+    const url = window.location.origin + (path === "/" ? "" : path);
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
