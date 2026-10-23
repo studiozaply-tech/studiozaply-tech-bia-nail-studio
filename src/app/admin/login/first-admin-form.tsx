@@ -38,7 +38,8 @@ export function FirstAdminForm() {
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="code">Código de acesso</Label>
-        <Input id="code" name="code" autoComplete="off" autoCapitalize="characters" placeholder="XXXX-XXXX" required />
+        <Input id="code" name="code" autoComplete="off" autoCapitalize="characters" placeholder="Ex.: ABCD-1234" required />
+        <p className="text-xs text-muted-foreground">Pode digitar com ou sem hífen, em maiúsculas ou minúsculas.</p>
       </div>
       {state.error && (
         <Alert variant="destructive">

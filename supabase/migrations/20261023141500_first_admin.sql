@@ -1,7 +1,7 @@
 -- Primeiro acesso ao painel: cria a conta da profissional pela tela de login.
 -- Só funciona enquanto não existir nenhuma administradora e exige um código
 -- de uso único. O código é gravado (como hash) direto no banco, fora do repositório:
---   insert into private.setup_codes (code_hash) values (extensions.crypt('<código>', extensions.gen_salt('bf')));
+--   insert into private.setup_codes (code_hash) values (extensions.crypt('<CODIGO SO LETRAS E NUMEROS>', extensions.gen_salt('bf')));
 
 create schema if not exists private;
 revoke all on schema private from public, anon, authenticated;
