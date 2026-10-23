@@ -22,7 +22,7 @@ Supabase PostgreSQL + Supabase Auth.
    set user_id = (select id from auth.users where email = 'EMAIL-DA-BEATRIZ');
    ```
    Recomendado: em Authentication > Providers > Email, desative *Allow new users to sign up*.
-4. **Configure o app**: `cp .env.example .env.local` e preencha URL e chave **anon** do projeto.
+4. **Configure o app** (opcional): o código já aponta para o projeto Supabase de produção. Para usar outro projeto, `cp .env.example .env.local` e preencha URL e chave **anon/publishable**.
 5. `npm install` e `npm run dev` → http://localhost:3000 (painel em `/admin`).
 6. **Primeiro uso do painel**: em *Configurações > Horários disponíveis*, cadastre os horários de
    início que as clientes podem escolher. Enquanto não houver horários, o calendário público fica vazio
